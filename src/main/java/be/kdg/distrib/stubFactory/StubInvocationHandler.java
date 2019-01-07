@@ -21,6 +21,8 @@ public class StubInvocationHandler implements InvocationHandler {
         System.out.println("invoke op skeleton");
         System.out.println("\tmethodName = " + method.getName());
 
+        System.out.println("\treturn = " + method.getReturnType());
+
         if (args != null) {
             for (Object arg : args) {
                 System.out.println("\targ = " + arg);
@@ -47,12 +49,26 @@ public class StubInvocationHandler implements InvocationHandler {
             }
         }
         messageManager.send(callMessage, serverAddress);
+        Class returnType = method.getReturnType();
+        if()
         checkEmptyReply();
 
         return null;
     }
 
     private void checkEmptyReply() {
+        String value = "";
+        while (!"Ok".equals(value)) {
+            MethodCallMessage reply = messageManager.wReceive();
+            if (!"result".equals(reply.getMethodName())) {
+                continue;
+            }
+            value = reply.getParameter("result");
+        }
+        System.out.println("OK");
+    }
+
+    private Object checkReply() {
         String value = "";
         while (!"Ok".equals(value)) {
             MethodCallMessage reply = messageManager.wReceive();
