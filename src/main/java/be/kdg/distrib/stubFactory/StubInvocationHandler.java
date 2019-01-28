@@ -33,14 +33,14 @@ public class StubInvocationHandler implements InvocationHandler {
 
         if (args != null) {
             int count = 0;
-            for (Object arg: args) {
+            for (Object arg : args) {
                 if (isNotObject(arg)) {
                     callMessage.setParameter("arg" + count++, arg.toString());
                 } else {
                     for (Method getter : arg.getClass().getDeclaredMethods()) {
                         if (getter.getName().startsWith("get")) {
                             callMessage.setParameter("arg" + count + "." + getter.getName().substring(3).toLowerCase(), getter.invoke(arg).toString());
-                        }else if (getter.getName().startsWith("is")) {
+                        } else if (getter.getName().startsWith("is")) {
                             callMessage.setParameter("arg" + count + "." + getter.getName().substring(2).toLowerCase(), getter.invoke(arg).toString());
                         }
                     }
@@ -50,9 +50,12 @@ public class StubInvocationHandler implements InvocationHandler {
         }
         messageManager.send(callMessage, serverAddress);
         Class returnType = method.getReturnType();
-        if()
-        checkEmptyReply();
-
+        if (returnType == void.class)
+            checkEmptyReply();
+        else if (returnType.isPrimitive() || returnType == String.class)
+            return checkReply();
+        else
+            return checkObjectReply();
         return null;
     }
 
@@ -69,15 +72,19 @@ public class StubInvocationHandler implements InvocationHandler {
     }
 
     private Object checkReply() {
-        String value = "";
-        while (!"Ok".equals(value)) {
-            MethodCallMessage reply = messageManager.wReceive();
-            if (!"result".equals(reply.getMethodName())) {
-                continue;
-            }
-            value = reply.getParameter("result");
+        MethodCallMessage reply = messageManager.wReceive();
+        while (!"result".equals(reply.getMethodName())) {
+            reply = messageManager.wReceive();
         }
-        System.out.println("OK");
+        return reply.getParameter("result");
+    }
+
+    private Object checkObjectReply() {
+        MethodCallMessage reply = messageManager.wReceive();
+        while (!"result".equals(reply.getMethodName())) {//TODO
+            reply = messageManager.wReceive();
+        }
+        return reply.getParameter("result");
     }
 
     private boolean isNotObject(Object object) {
