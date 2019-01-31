@@ -66,8 +66,6 @@ public class StubInvocationHandler implements InvocationHandler {
                 return checkReply().charAt(0);
             else if (returnType == boolean.class)
                 return Boolean.valueOf(checkReply());
-            else
-                throw new Exception(returnType + ": Primitive type not implemented");
         } else
             return checkObjectReply(returnType);
         return null;
@@ -100,24 +98,67 @@ public class StubInvocationHandler implements InvocationHandler {
         }
         Map<String,String> parameters = reply.getParameters();
         int variableCount = parameters.size();
+        //TODO not working cant get parameter names at runtime
+        Object test = null;
+        try {
+            test = object.getDeclaredConstructor().newInstance();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        for (String param : parameters.keySet()) {
+            try {
+                Field temp = object.getDeclaredField(param.substring(7));
+                temp.set(test, convertParameter(parameters.get(param), temp.getType()));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
+        return test;
+/*
         Constructor con = Arrays.stream(object.getConstructors())
                 .filter(constructor -> constructor.getParameterCount() == variableCount)
-                .filter(constructor -> Arrays.stream(constructor.getParameters()).allMatch(parameter -> parameters.containsKey("result." + parameter.getName())))
+                //.filter(constructor -> Arrays.stream(constructor.getParameters()).allMatch(parameter -> parameters.containsKey("result." + parameter.getName())))
                 .findFirst().get();
+        Object[] parametersConverted = new Object[parameters.size()];
+        Parameter[] parametersCon = con.getParameters();
+        for (int i = 0; i < parametersCon.length; i++) {
+            Parameter param = parametersCon[i];
+            parametersConverted[i] = convertParameter((String) parameters.values().toArray()[i],param.getType());
+        }
         try {
-            //TODO convert to right types and right order with names
-            con.newInstance(parameters.values());
+            con.newInstance(parametersCon);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
+        }
+        return null;*/
+    }
+
+    private Object convertParameter(String parameter, Class type){
+        if (type.isPrimitive()){
+            if (type == int.class)
+                return Integer.valueOf(parameter);
+            else if(type == char.class)
+                return parameter.charAt(0);
+            else if(type == boolean.class)
+                return Boolean.valueOf(parameter);
+        }
+        else {
+            if(type == String.class)
+            return parameter;
         }
         return null;
     }
 
     private boolean isNotObject(Object object) {
-        if (object.getClass().isPrimitive() || object.getClass().equals(String.class)) {
-            return true;
-        } else {
-            return false;
-        }
+        Class type = object.getClass();
+        return type.isPrimitive() || type == String.class || type == Integer.class || type == Double.class || type == Boolean.class || type == Character.class;
     }
 }
