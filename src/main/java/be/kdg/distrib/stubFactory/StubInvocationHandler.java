@@ -98,47 +98,25 @@ public class StubInvocationHandler implements InvocationHandler {
         }
         Map<String,String> parameters = reply.getParameters();
         int variableCount = parameters.size();
-        //TODO not working cant get parameter names at runtime
         Object test = null;
         try {
             test = object.getDeclaredConstructor().newInstance();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
+        } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
         }
         for (String param : parameters.keySet()) {
             try {
                 Field temp = object.getDeclaredField(param.substring(7));
+                temp.setAccessible(true);
                 temp.set(test, convertParameter(parameters.get(param), temp.getType()));
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchFieldException e) {
+                temp.setAccessible(false);//TODO check
+                //TODO also possible with setter?
+                //TODO add tests for threads?
+            } catch (IllegalAccessException | NoSuchFieldException e) {
                 e.printStackTrace();
             }
         }
         return test;
-/*
-        Constructor con = Arrays.stream(object.getConstructors())
-                .filter(constructor -> constructor.getParameterCount() == variableCount)
-                //.filter(constructor -> Arrays.stream(constructor.getParameters()).allMatch(parameter -> parameters.containsKey("result." + parameter.getName())))
-                .findFirst().get();
-        Object[] parametersConverted = new Object[parameters.size()];
-        Parameter[] parametersCon = con.getParameters();
-        for (int i = 0; i < parametersCon.length; i++) {
-            Parameter param = parametersCon[i];
-            parametersConverted[i] = convertParameter((String) parameters.values().toArray()[i],param.getType());
-        }
-        try {
-            con.newInstance(parametersCon);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
-        return null;*/
     }
 
     private Object convertParameter(String parameter, Class type){
