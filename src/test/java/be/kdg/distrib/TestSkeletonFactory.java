@@ -82,6 +82,7 @@ public class TestSkeletonFactory {
         assertEquals("run method should create new thread", numberOfThreads+1, newNumber);
     }
 
+    //TODO fails on run all
     @Test(timeout = 1000)
     public void testRunMethodOneRequest() {
         skeleton.run();

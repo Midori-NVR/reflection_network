@@ -112,6 +112,7 @@ public class StubInvocationHandler implements InvocationHandler {
                 temp.setAccessible(false);//TODO check
                 //TODO also possible with setter?
                 //TODO add tests for threads?
+                //TODO extra test aankondigingen
             } catch (IllegalAccessException | NoSuchFieldException e) {
                 e.printStackTrace();
             }
