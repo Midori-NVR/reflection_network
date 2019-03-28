@@ -123,6 +123,7 @@ public class TestSkeletonFactory {
         assertEquals("Ok", reply.getParameter("result"));
     }
 
+    //TODO
     @Test(expected = RuntimeException.class)
     public void testMessageWithWrongParamName() {
         MethodCallMessage message = new MethodCallMessage(myAddress, "testMethod2");
