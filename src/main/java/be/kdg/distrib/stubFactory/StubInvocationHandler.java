@@ -39,6 +39,8 @@ public class StubInvocationHandler implements InvocationHandler {
                 if (isNotObject(arg)) {
                     callMessage.setParameter("arg" + count++, arg.toString());
                 } else {
+                    //TODO aparte methodes?
+                    //TODO with or without getters? see also my/skeleton handler
                     for (Method getter : arg.getClass().getDeclaredMethods()) {
                         if (getter.getName().startsWith("get")) {
                             callMessage.setParameter("arg" + count + "." + getter.getName().substring(3).toLowerCase(), getter.invoke(arg).toString());
@@ -96,7 +98,7 @@ public class StubInvocationHandler implements InvocationHandler {
         while (!"result".equals(reply.getMethodName())) {
             reply = messageManager.wReceive();
         }
-        Map<String,String> parameters = reply.getParameters();
+        Map<String, String> parameters = reply.getParameters();
         int variableCount = parameters.size();
         //TODO rename test
         Object test = null;
@@ -121,18 +123,17 @@ public class StubInvocationHandler implements InvocationHandler {
         return test;
     }
 
-    private Object convertParameter(String parameter, Class type){
-        if (type.isPrimitive()){
+    private Object convertParameter(String parameter, Class type) {
+        if (type.isPrimitive()) {
             if (type == int.class)
                 return Integer.valueOf(parameter);
-            else if(type == char.class)
+            else if (type == char.class)
                 return parameter.charAt(0);
-            else if(type == boolean.class)
+            else if (type == boolean.class)
                 return Boolean.valueOf(parameter);
-        }
-        else {
-            if(type == String.class)
-            return parameter;
+        } else {
+            if (type == String.class)
+                return parameter;
         }
         return null;
     }

@@ -46,12 +46,6 @@ public class MyInvocationHandler implements InvocationHandler {
         return null;
     }
 
-    private void sendEmptyReply(MethodCallMessage request) {
-        MethodCallMessage reply = new MethodCallMessage(messageManager.getMyAddress(), "result");
-        reply.setParameter("result", "Ok");
-        messageManager.send(reply, request.getOriginator());
-        System.out.println("OK");
-    }
 
     private void run() {
         while (true) {
@@ -115,12 +109,47 @@ public class MyInvocationHandler implements InvocationHandler {
                 }
             }
 
-            implMethod.invoke(impl, argumentsConverted);
+            Object returnedObject = implMethod.invoke(impl, argumentsConverted);
+            //TODO returns
+            Class returnType = implMethod.getReturnType();
+            if (returnType == void.class)
+                sendEmptyReply(message);
+            else if (isNotObjectClass(returnType))
+                sendStringReply(message, returnedObject);
+            else
+                sendObjectReply(message, returnedObject);
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
-        //TODO returns
-        sendEmptyReply(message);
+
+
+    }
+
+    private void sendObjectReply(MethodCallMessage request, Object returnedObject) throws InvocationTargetException, IllegalAccessException {
+        MethodCallMessage reply = new MethodCallMessage(messageManager.getMyAddress(), "result");
+        for (Method getter : returnedObject.getClass().getDeclaredMethods()) {
+            if (getter.getName().startsWith("get")) {
+                reply.setParameter("result." + getter.getName().substring(3).toLowerCase(), getter.invoke(returnedObject).toString());
+            } else if (getter.getName().startsWith("is")) {
+                reply.setParameter("result." + getter.getName().substring(2).toLowerCase(), getter.invoke(returnedObject).toString());
+            }
+        }
+        messageManager.send(reply, request.getOriginator());
+        System.out.println("OK");
+    }
+
+    private void sendStringReply(MethodCallMessage request, Object returnedObject) {
+        MethodCallMessage reply = new MethodCallMessage(messageManager.getMyAddress(), "result");
+        reply.setParameter("result", returnedObject.toString());
+        messageManager.send(reply, request.getOriginator());
+        System.out.println("OK");
+    }
+
+    private void sendEmptyReply(MethodCallMessage request) {
+        MethodCallMessage reply = new MethodCallMessage(messageManager.getMyAddress(), "result");
+        reply.setParameter("result", "Ok");
+        messageManager.send(reply, request.getOriginator());
+        System.out.println("OK");
     }
 
     private Object convertParameter(String parameter, Class type) {
