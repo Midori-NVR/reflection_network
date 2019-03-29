@@ -73,7 +73,8 @@ public class MyInvocationHandler implements InvocationHandler {
         int finalParameterCount = parameterCount;
         Method implMethod = Arrays.stream(impl.getClass().getDeclaredMethods()).filter(method -> method.getParameterCount() == finalParameterCount).filter(method -> method.getName().equals(message.getMethodName())).findFirst().get();
         try {
-            //TODO method arguments checken op volgorde bij class meerdere args anders converte naar juiste type.
+            //TODO also check stub
+            //TODO method arguments unit checken op volgorde bij class meerdere args anders converte naar juiste type.
             Class[] argumentTypes = implMethod.getParameterTypes();
             Object[] argumentsConverted = new Object[implMethod.getParameterCount()];
 
