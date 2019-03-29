@@ -59,14 +59,16 @@ public class MyInvocationHandler implements InvocationHandler {
     }
 
     private void handleRequest(MethodCallMessage message) throws NoSuchMethodException {
-        //TODO check for null result vv TODO !!!!!!!!!!!fixed with equals
         //TODO verkeerde lengte bij objecten als parameter
-
-        OptionalInt parameterCountOpt =
-                message.getParameters().keySet().stream().mapToInt(s -> Integer.parseInt(s.substring(3, 4))).max();
+        //TODO max 9
         int parameterCount = 0;
-        if (parameterCountOpt.isPresent()) parameterCount = parameterCountOpt.getAsInt() + 1;
+        //TODO try if no . found last number
+        if(message.getParameters().keySet().stream().allMatch(s -> s.matches("arg\\d*.*"))) {
+            OptionalInt parameterCountOpt =
+                    message.getParameters().keySet().stream().mapToInt(s -> Integer.parseInt(s.indexOf('.') == -1 ? s.substring(3): s.substring(3, s.indexOf('.')))).max();
 
+            if (parameterCountOpt.isPresent()) parameterCount = parameterCountOpt.getAsInt() + 1;
+        }
         //TODO fix useless
         int finalParameterCount = parameterCount;
         Method implMethod = Arrays.stream(impl.getClass().getDeclaredMethods()).filter(method -> method.getParameterCount() == finalParameterCount).filter(method -> method.getName().equals(message.getMethodName())).findFirst().get();

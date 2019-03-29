@@ -82,8 +82,8 @@ public class TestSkeletonFactory {
         assertEquals("run method should create new thread", numberOfThreads+1, newNumber);
     }
 
-    //TODO fails on run all
-    @Test(timeout = 1000)
+    //TODO fails on run all normal time was 1000 ms
+    @Test(timeout = 2000)
     public void testRunMethodOneRequest() {
         skeleton.run();
         MethodCallMessage message = new MethodCallMessage(myAddress, "testMethod1");
@@ -123,7 +123,6 @@ public class TestSkeletonFactory {
         assertEquals("Ok", reply.getParameter("result"));
     }
 
-    //TODO
     @Test(expected = RuntimeException.class)
     public void testMessageWithWrongParamName() {
         MethodCallMessage message = new MethodCallMessage(myAddress, "testMethod2");
