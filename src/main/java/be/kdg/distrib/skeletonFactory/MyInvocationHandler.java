@@ -59,22 +59,16 @@ public class MyInvocationHandler implements InvocationHandler {
     }
 
     private void handleRequest(MethodCallMessage message) throws NoSuchMethodException {
-        //TODO verkeerde lengte bij objecten als parameter
-        //TODO max 9
         int parameterCount = 0;
-        //TODO try if no . found last number
         if(message.getParameters().keySet().stream().allMatch(s -> s.matches("arg\\d*.*"))) {
             OptionalInt parameterCountOpt =
                     message.getParameters().keySet().stream().mapToInt(s -> Integer.parseInt(s.indexOf('.') == -1 ? s.substring(3): s.substring(3, s.indexOf('.')))).max();
 
             if (parameterCountOpt.isPresent()) parameterCount = parameterCountOpt.getAsInt() + 1;
         }
-        //TODO fix useless
         int finalParameterCount = parameterCount;
         Method implMethod = Arrays.stream(impl.getClass().getDeclaredMethods()).filter(method -> method.getParameterCount() == finalParameterCount).filter(method -> method.getName().equals(message.getMethodName())).findFirst().get();
         try {
-            //TODO also check stub
-            //TODO method arguments unit checken op volgorde bij class meerdere args anders converte naar juiste type.
             Class[] argumentTypes = implMethod.getParameterTypes();
             Object[] argumentsConverted = new Object[implMethod.getParameterCount()];
 
@@ -82,10 +76,9 @@ public class MyInvocationHandler implements InvocationHandler {
                 Class type = argumentTypes[i];
                 if (isNotObjectClass(type)) {
                     String param = message.getParameter("arg" + i);
-                    if (param == null) throw new RuntimeException(); //TODO check if possible other way
+                    if (param == null) throw new RuntimeException();
                     argumentsConverted[i] = convertParameter(param, type);
                 } else {
-                    //TODO rename parameters also in stub
                     Object test = null;
                     try {
                         test = type.getDeclaredConstructor().newInstance();
@@ -95,25 +88,19 @@ public class MyInvocationHandler implements InvocationHandler {
                     Map<String, String> objectParameters = message.getParametersStartingWith("arg" + i + ".");
                     for (String param : objectParameters.keySet()) {
                         try {
-                            //TODO all substrings used dont support numbers above 9
                             Field temp = type.getDeclaredField(param.substring(5));
                             temp.setAccessible(true);
                             temp.set(test, convertParameter(objectParameters.get(param), temp.getType()));
-                            temp.setAccessible(false);//TODO check
-                            //TODO also possible with setter?
-                            //TODO add tests for threads?
-                            //TODO extra test aankondigingen
+                            temp.setAccessible(false);
                         } catch (IllegalAccessException | NoSuchFieldException e) {
                             e.printStackTrace();
                         }
                     }
                     argumentsConverted[i] = test;
-                    //TODO class stuff
                 }
             }
 
             Object returnedObject = implMethod.invoke(impl, argumentsConverted);
-            //TODO returns
             Class returnType = implMethod.getReturnType();
             if (returnType == void.class)
                 sendEmptyReply(message);
@@ -163,7 +150,7 @@ public class MyInvocationHandler implements InvocationHandler {
                 return parameter.charAt(0);
             else if (type == boolean.class)
                 return Boolean.valueOf(parameter);
-            else if (type == double.class)//TODO missing in stub?
+            else if (type == double.class)
                 return Double.valueOf(parameter);
         } else {
             if (type == String.class)

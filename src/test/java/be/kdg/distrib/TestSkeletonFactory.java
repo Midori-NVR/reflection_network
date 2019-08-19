@@ -82,7 +82,7 @@ public class TestSkeletonFactory {
         assertEquals("run method should create new thread", numberOfThreads+1, newNumber);
     }
 
-    //TODO fails on run all normal time was 1000 ms
+    //NOTE fails on run all on my laptop. original time was 1000 ms
     @Test(timeout = 2000)
     public void testRunMethodOneRequest() {
         skeleton.run();
@@ -222,5 +222,23 @@ public class TestSkeletonFactory {
         assertEquals("p", reply.getParameter("result.gender"));
         assertEquals("97", reply.getParameter("result.age"));
         assertEquals("false", reply.getParameter("result.deleted"));
+    }
+
+    @Test(timeout = 1000)
+    public void testWithEverything() {
+        MethodCallMessage message = new MethodCallMessage(myAddress, "fullBlownTestMethod");
+        message.setParameter("arg0", "bla");
+        message.setParameter("arg1.name", "Voornaam Naam");
+        message.setParameter("arg1.age", "245");
+        message.setParameter("arg1.gender", "U");
+        message.setParameter("arg1.deleted", "true");
+        message.setParameter("arg2", "-489");
+        message.setParameter("arg3", "false");
+        skeleton.handleRequest(message);
+        MethodCallMessage reply = messageManager.wReceive();
+        assertEquals("bla", reply.getParameter("result.name"));
+        assertEquals("-489", reply.getParameter("result.age"));
+        assertEquals("U", reply.getParameter("result.gender"));
+        assertEquals("true", reply.getParameter("result.deleted"));
     }
 }

@@ -39,8 +39,6 @@ public class StubInvocationHandler implements InvocationHandler {
                 if (isNotObject(arg)) {
                     callMessage.setParameter("arg" + count++, arg.toString());
                 } else {
-                    //TODO aparte methodes?
-                    //TODO with or without getters? see also my/skeleton handler
                     for (Method getter : arg.getClass().getDeclaredMethods()) {
                         if (getter.getName().startsWith("get")) {
                             callMessage.setParameter("arg" + count + "." + getter.getName().substring(3).toLowerCase(), getter.invoke(arg).toString());
@@ -100,7 +98,6 @@ public class StubInvocationHandler implements InvocationHandler {
         }
         Map<String, String> parameters = reply.getParameters();
         int variableCount = parameters.size();
-        //TODO rename test
         Object test = null;
         try {
             test = object.getDeclaredConstructor().newInstance();
@@ -112,10 +109,7 @@ public class StubInvocationHandler implements InvocationHandler {
                 Field temp = object.getDeclaredField(param.substring(7));
                 temp.setAccessible(true);
                 temp.set(test, convertParameter(parameters.get(param), temp.getType()));
-                temp.setAccessible(false);//TODO check
-                //TODO also possible with setter?
-                //TODO add tests for threads?
-                //TODO extra test aankondigingen
+                temp.setAccessible(false);
             } catch (IllegalAccessException | NoSuchFieldException e) {
                 e.printStackTrace();
             }
